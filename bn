@@ -1,0 +1,41 @@
+#!/bin/bash
+
+cd us_baby_names;
+
+#not enough arguments enter
+if [[ $# -lt 2 || $# -gt 2 ]]
+then
+	echo "wrong number of arguments" >&2;
+	exit 1;
+fi
+
+#series of if statements checks what gender option was entered - come back and replace with reg expressions 
+if [[ $2 == "F" || $2 == "f" ]]
+then
+	G="F";
+#	while read line
+#	do
+#		cat "yob$1.txt" | grep 
+
+elif [[ $2 == "M" || $2 == "m" ]]
+then
+	G="M";
+
+elif [[ $2 == "B" || $2 == "b" ]]
+then
+	G="";
+
+#returns error message if no valid option was entered
+else
+	echo "please enter one of the following: F,f,M,m,B,b";
+	exit 1;
+
+fi
+
+#prints chosen gender option for testing
+echo "$G";
+
+while read line
+do
+	cat "yob$1.txt" | grep ",$G," | grep -i "$line";
+done
