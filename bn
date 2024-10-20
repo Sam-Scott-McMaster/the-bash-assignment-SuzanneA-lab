@@ -11,7 +11,7 @@ line="a"    #line variable setup initially so Errorcheck() can run before and du
 help(){
     if [[ $Y == "--help" ]]
     then
-        echo "Usage: bn <year> <assigned gender f|F|m|M|b|B>";
+        echo "Usage: bn <year> <assigned gender: f|F|m|M|b|B>";
 		echo -e "Sends rank of baby name from standard input to standard output \n";
 		echo "	<year> f|F		Gives rank of given name in given year among female baby names";
 		echo "	<year> m|M		Gives rank of given name in given year among male baby names";
@@ -37,8 +37,8 @@ Errorcheck(){
     #checks for wrong number of arguments
     if [[ $narg -lt 2 || $narg -gt 2 ]]
     then
-        echo "wrong number of arguments" >&2;
-        echo "bn <year> <assigned gender f|F|m|M|b|B>" >&2;
+        echo "Wrong number of arguments" >&2;
+        echo "bn <year> <assigned gender: f|F|m|M|b|B>" >&2;
         exit 1;
     fi
 
@@ -46,14 +46,14 @@ Errorcheck(){
     if [[ $G =~ [^f,F,m,M,b,B]$ ]]
     then
         echo "Badly formatted assigned gender: $G" >&2;
-        echo "bn <year> <assigned gender f|F|m|M|b|B>" >&2;
+        echo "bn <year> <assigned gender: f|F|m|M|b|B>" >&2;
         exit 2;
     fi
 
     if [[ $Y =~ [^0-9] ]]
     then
         echo "Badly formatted year: $Y" >&2;
-        echo "bn <year> <assigned gender f|F|m|M|b|B>" >&2;
+        echo "bn <year> <assigned gender: f|F|m|M|b|B>" >&2;
         exit 2;
     fi
 
@@ -134,7 +134,7 @@ rank(){
 	#extra error check in case Errorcheck function missed something
 	else
 		echo "Badly formatted assigned gender: $G" >&2;
-        echo "bn <year> <assigned gender f|F|m|M|b|B>" >&2;
+        echo "bn <year> <assigned gender: f|F|m|M|b|B>" >&2;
         exit 2;
     fi
 }
