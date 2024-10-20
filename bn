@@ -1,41 +1,154 @@
 #!/bin/bash
-
 cd us_baby_names;
 
-#not enough arguments enter
-if [[ $# -lt 2 || $# -gt 2 ]]
-then
-	echo "wrong number of arguments" >&2;
-	exit 1;
-fi
+#defining variables
+Y=$1        #input year
+G=$2        #input gender
+narg=$#     #number of arguments given
+line="a"    #line variable setup initially so Errorcheck() can run before and during the while loop
 
-#series of if statements checks what gender option was entered - come back and replace with reg expressions 
-if [[ $2 == "F" || $2 == "f" ]]
-then
-	G="F";
-#	while read line
-#	do
-#		cat "yob$1.txt" | grep 
+#prints manual if the help flag is used
+help(){
+    if [[ $Y == "--help" ]]
+    then
+        echo "Usage: bn <year> <assigned gender f|F|m|M|b|B>";
+		echo -e "Sends rank of baby name from standard input to standard output \n";
+		echo "	<year> f|F		Gives rank of given name in given year among female baby names";
+		echo "	<year> m|M		Gives rank of given name in given year among male baby names";
+		echo "	<year> b|B		Gives rank of given name in given year among both female and male baby names";
+		echo -e "    		--help	display this help and exit \n";
+		echo "Examples:";
+		echo "	bn 1999 F 		Output the rank of names from standard input amongst all other female names in 1999";
+		echo -e "	bn 2002 b		Output the rank of names from standard input amongst all other female and male names in 2002 \n";
+		echo "Exit status:";
+		echo "	0  if OK";
+		echo "	1  if wrong number of command line arguments were entered";
+		echo "	2  if command line arguments are incorrectly formatted";
+		echo "	3  if name incorrectly formatted - non-alphabetical characters present";
+		echo -e "	4  if no data file exists for the selected year \n"
+		echo -e "version 1.0.0";
+		echo "for more info contact abduls61@mcmaster.ca";
+        exit 0;
+    fi
+}
 
-elif [[ $2 == "M" || $2 == "m" ]]
-then
-	G="M";
+#checks for all possible error cases and exits if neccesary
+Errorcheck(){ 
+    #checks for wrong number of arguments
+    if [[ $narg -lt 2 || $narg -gt 2 ]]
+    then
+        echo "wrong number of arguments" >&2;
+        echo "bn <year> <assigned gender f|F|m|M|b|B>" >&2;
+        exit 1;
+    fi
 
-elif [[ $2 == "B" || $2 == "b" ]]
-then
-	G="";
+    #checks for incorrect gender input
+    if [[ $G =~ [^f,F,m,M,b,B]$ ]]
+    then
+        echo "Badly formatted assigned gender: $G" >&2;
+        echo "bn <year> <assigned gender f|F|m|M|b|B>" >&2;
+        exit 2;
+    fi
 
-#returns error message if no valid option was entered
-else
-	echo "please enter one of the following: F,f,M,m,B,b";
-	exit 1;
+    if [[ $Y =~ [^0-9] ]]
+    then
+        echo "Badly formatted year: $Y" >&2;
+        echo "bn <year> <assigned gender f|F|m|M|b|B>" >&2;
+        exit 2;
+    fi
 
-fi
+    #checks for badly formatted name
+    if [[ $line =~ [^a-z,A-Z] ]]
+    then
+        echo "Badly formatted name: $line" >&2;
+        exit 3;
+    fi
 
-#prints chosen gender option for testing
-echo "$G";
+    #checks that the file for given year exists
+    if [[ ! -f "yob${Y}.txt" ]]
+    then
+        echo "No data for $Y" >&2;
+        exit 4;
+    fi
+}
 
-while read line
+#runs the main function of the program
+rank(){
+    #if/elif statements check to see what gender was entered and run commands based on that
+    
+    if [[ $G =~ ^[f,F]$ ]]
+        then
+            total=$(cat "yob$Y.txt" | grep ",F," | wc -l);  #finds the total number of names for given gender
+            rank=$(cat "yob$Y.txt" | grep ",F," | grep -i -n "\b$line\b" | cut -f1 -d: ); #finds the given name and identifies it's line number using grep and cut
+                
+            #if a number is found using the above grep command - name was found and success statement is printed.
+            if [[ $rank =~ [0-9] ]] 
+            then
+                echo "$Y: $line ranked $rank out of $total female names.";
+                
+            #otherwise, the name doesn't exist in this data set and the following statement is printed
+            else
+                echo "$Y: $line not found among female names.";
+            fi
+
+    #same process is repeated for the male option
+    elif [[ $G =~ ^[m,M]$ ]]
+        then
+            total=$(cat "yob$Y.txt" | grep ",M," | wc -l);
+            rank=$(cat "yob$Y.txt" | grep ",M," | grep -i -n "\b$line\b" | cut -f1 -d: );
+
+            if [[ $rank =~ [0-9] ]]
+            then
+                echo "$Y: $line ranked $rank out of $total male names.";
+            else
+                echo "$Y: $line not found among male names.";
+            fi
+
+    #'both' option executes the functions of both the male and female if/elif statements using four different 'total' and 'rank' variables
+    elif [[ $G =~ ^[b,B]$ ]]
+        then
+            #female name check
+            totalf=$(cat "yob$Y.txt" | grep ",F," | wc -l);
+            rankf=$(cat "yob$Y.txt" | grep ",F," | grep -i -n "\b$line\b" | cut -f1 -d: );
+
+            #male name check
+            totalm=$(cat "yob$Y.txt" | grep ",M," | wc -l);
+            rankm=$(cat "yob$Y.txt" | grep ",M," | grep -i -n "\b$line\b" | cut -f1 -d: );
+            
+            #checks for existence of female name
+            if [[ $rankf =~ [0-9] ]]
+            then
+                echo "$Y: $line ranked $rankf out of $totalf female names.";
+            else
+                echo "$Y: $line not found among female names.";
+            fi
+            
+            #checks for existence of male name
+            if [[ $rankm =~ [0-9] ]]
+            then
+                echo "$Y: $line ranked $rankm out of $totalm male names.";
+            else
+                echo "$Y: $line not found among male names.";
+            fi
+
+	#extra error check in case Errorcheck function missed something
+	else
+		echo "Badly formatted assigned gender: $G" >&2;
+        echo "bn <year> <assigned gender f|F|m|M|b|B>" >&2;
+        exit 2;
+    fi
+}
+
+#this section runs the functions to execute the program, 'help' and 'Errorcheck' run before accepting user input for argument checks
+help
+Errorcheck
+
+#while and for loop combination accept user input word-by-word - Errorcheck and rank functions run continously within the loops
+while read uinput
 do
-	cat "yob$1.txt" | grep ",$G," | grep -i "$line";
+    for line in $uinput
+    do
+       Errorcheck
+       rank
+    done
 done
